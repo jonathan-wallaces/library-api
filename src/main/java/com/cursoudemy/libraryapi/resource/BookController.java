@@ -5,6 +5,7 @@ import com.cursoudemy.libraryapi.dto.BookDTO;
 import com.cursoudemy.libraryapi.exception.BusinessException;
 import com.cursoudemy.libraryapi.model.entity.Book;
 import com.cursoudemy.libraryapi.service.BookService;
+import lombok.Getter;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,13 @@ public class BookController {
         entity = service.save(entity);
         return modelMapper.map(entity, BookDTO.class);
     }
+
+    @GetMapping("{id}")
+    public BookDTO get(@PathVariable Long id){
+        Book book = service.getById(id).get();
+        return modelMapper.map(book, BookDTO.class);
+    }
+
     //MethodArgumentNotValidException exception retornada pelo @valid quando não é valido
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

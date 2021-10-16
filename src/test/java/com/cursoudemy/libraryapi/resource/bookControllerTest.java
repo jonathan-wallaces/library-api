@@ -4,15 +4,12 @@ import com.cursoudemy.libraryapi.dto.BookDTO;
 import com.cursoudemy.libraryapi.exception.BusinessException;
 import com.cursoudemy.libraryapi.model.entity.Book;
 import com.cursoudemy.libraryapi.service.BookService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
-import org.hamcrest.collection.IsCollectionWithSize;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.BDDMockito;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -27,7 +24,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 
-import javax.print.attribute.standard.Media;
+import java.util.Optional;
 
 
 @ExtendWith(SpringExtension.class)
@@ -44,14 +41,14 @@ public class bookControllerTest {
     @MockBean
     BookService service;
 
-    private BookDTO createdNewBook() {
+    private BookDTO createdNewBookDto() {
         return BookDTO.builder().author("Artur").title("As aventuras").isbn("001").build();
     }
 
     @Test @DisplayName("Deve criar um livro com sucesso.")
     public void createdBookTest() throws Exception{
-        BookDTO dto = createdNewBook();
-        Book savedBook = Book.builder().id(10L).author("Artur").title("As aventuras").isbn("001").build();
+        BookDTO dto = createdNewBookDto();
+        Book savedBook = createdNewBook();
         BDDMockito.given(service.save(Mockito.any(Book.class)))
                 .willReturn(savedBook);
         String json = new ObjectMapper().writeValueAsString(dto);
@@ -69,6 +66,9 @@ public class bookControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("isbn").value(dto.getIsbn()));
     }
 
+    private Book createdNewBook() {
+        return Book.builder().id(10L).author("Artur").title("As aventuras").isbn("001").build();
+    }
 
 
     @Test @DisplayName("Deve lançar um erro de validação quando não houver dados suficientes.")
@@ -90,7 +90,7 @@ public class bookControllerTest {
 
     @Test @DisplayName("Lançando erro ao cadastrar isbn duplicado")
     public void createdBookWithDuplicatedIsbn() throws Exception{
-        BookDTO dto = createdNewBook();
+        BookDTO dto = createdNewBookDto();
         String json = new ObjectMapper().writeValueAsString(dto);
         String mensagemErro="Isbn já criado";
         BDDMockito.given(service.save(Mockito.any(Book.class)))
@@ -106,6 +106,35 @@ public class bookControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("errors", Matchers.hasSize(1)))
                 .andExpect(MockMvcResultMatchers.jsonPath("errors[0]").value(mensagemErro));
+    }
+
+    @Test
+    @DisplayName("Deve obter as informaçõs de um livro")
+    public void getBookDetailsTest() throws Exception{
+       //cenario (given)
+        Long id = 1L;
+
+        Book book = Book.builder()
+                .id(id)
+                .title(createdNewBook().getTitle())
+                .author(createdNewBook().getAuthor())
+                .isbn(createdNewBook().getIsbn())
+                .build();
+        BDDMockito.given(service.getById(id)).willReturn(Optional.of(book));
+
+        //execucao
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .get(BOOK_API.concat("/"+id))
+                .accept(MediaType.APPLICATION_JSON);
+
+        mvc
+                .perform(request)
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("id").value(id))
+                .andExpect(MockMvcResultMatchers.jsonPath("title").value(createdNewBook().getTitle()))
+                .andExpect(MockMvcResultMatchers.jsonPath("author").value(createdNewBook().getAuthor()))
+                .andExpect(MockMvcResultMatchers.jsonPath("isbn").value(createdNewBook().getIsbn()));
+
     }
 
 
