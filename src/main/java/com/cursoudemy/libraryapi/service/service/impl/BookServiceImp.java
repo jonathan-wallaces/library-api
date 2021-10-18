@@ -4,7 +4,6 @@ import com.cursoudemy.libraryapi.exception.BusinessException;
 import com.cursoudemy.libraryapi.model.entity.Book;
 import com.cursoudemy.libraryapi.model.entity.repository.BookRepository;
 import com.cursoudemy.libraryapi.service.BookService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -30,5 +29,10 @@ public class BookServiceImp implements BookService {
     @Override
     public Optional<Book> getById(Long id) {
         return Optional.empty();
+    }
+
+    @Override
+    public void deletById(Long id) {
+        repository.deleteById(id);
     }
 }
