@@ -9,5 +9,10 @@ public interface BookService {
 
     Optional<Book> getById(Long id);
 
-    void deletById(Long id);
+    void delete(Book book);
+
+
+    Book update(Book book);
+
+    Optional<Book> getBookByIsbn(String isbn);
 }

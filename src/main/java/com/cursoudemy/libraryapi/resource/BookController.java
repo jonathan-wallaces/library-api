@@ -5,18 +5,15 @@ import com.cursoudemy.libraryapi.dto.BookDTO;
 import com.cursoudemy.libraryapi.exception.BusinessException;
 import com.cursoudemy.libraryapi.model.entity.Book;
 import com.cursoudemy.libraryapi.service.BookService;
-import lombok.Getter;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/books")
@@ -46,22 +43,19 @@ public class BookController {
     @DeleteMapping("{id}") @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteBook(@PathVariable Long id){
        Book book = service.getById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND));
-       service.deletById(id);
+       service.delete(book);
 
     }
+    @PutMapping("{id}")
+    public BookDTO updateBook(@PathVariable Long id, @Valid @RequestBody BookDTO dto) {
+        return service.getById(id).map( book -> {
+            book.setAuthor(dto.getAuthor());
+            book.setTitle(dto.getTitle());
+            service.update(book);
+            return modelMapper.map(book, BookDTO.class);
+    }).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-    //MethodArgumentNotValidException exception retornada pelo @valid quando não é valido
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiErrors handleValidationExceptions(MethodArgumentNotValidException ex){
-        BindingResult bindingResult = ex.getBindingResult();
-        //List<ObjectError> allErrors = bindingResult.getAllErrors();
-        return new ApiErrors(bindingResult);
-    }
-    @ExceptionHandler(BusinessException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiErrors handleBusinessExcepiton(BusinessException ex){
-        return new ApiErrors(ex);
+
     }
 
 

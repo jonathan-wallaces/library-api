@@ -28,11 +28,30 @@ public class BookServiceImp implements BookService {
 
     @Override
     public Optional<Book> getById(Long id) {
-        return Optional.empty();
+        return this.repository.findById(id);
     }
 
     @Override
-    public void deletById(Long id) {
-        repository.deleteById(id);
+    public void delete(Book book){
+        if (book == null || book.getId() == null) {
+            throw new IllegalArgumentException("Id não pode ser nulo");
+        }
+        repository.delete(book);
     }
+
+    @Override
+    public Book update(Book book) {
+        if (book == null || book.getId() == null) {
+            throw new IllegalArgumentException("Id não pode ser nulo");
+        }
+        return repository.save(book);
+    }
+
+    @Override
+    public Optional<Book> getBookByIsbn(String s) {
+        return Optional.empty();
+    }
+
+
 }
+
